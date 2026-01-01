@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BPM Checker</title>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>BPM Checker</h1>
+      </header>
+
+      <main>
+        <div class="display-container">
+          <div class="label">Current BPM</div>
+          <div id="bpm-display">0.0</div>
+
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="label-sm">Average</div>
+              <div id="avg-display">0.0</div>
+            </div>
+            <div class="stat-item">
+              <div class="label-sm">Peak</div>
+              <div id="peak-display">0.0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="control-group">
+            <label for="mode-select">Calculate for</label>
+            <select id="mode-select">
+              <option value="6">24th</option>
+              <option value="4" selected>16th</option>
+              <option value="3">12th</option>
+              <option value="2">8th</option>
+            </select>
+            <label for="mode-select">note</label>
+            <br />
+            <label for="sampling-select">Sampling recent</label>
+            <select id="sampling-select">
+              <option value="8">8</option>
+              <option value="16" selected>16</option>
+              <option value="32">32</option>
+              <option value="64">64</option>
+              <option value="100">100</option>
+            </select>
+            <label for="sampling-select">inputs</label>
+          </div>
+          <button id="reset-btn">Reset</button>
+        </div>
+      </main>
+
+      <footer>
+        <p>Press any key to measure</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
