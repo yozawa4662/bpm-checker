@@ -26,8 +26,8 @@ let totalKeyCount = 0;
 */
 const fixed1 = (num: number) => num.toFixed(1);
 
-const handleInput = (e) => {
-    if (e.repeat) return;
+const handleInput = (e: KeyboardEvent | PointerEvent) => {
+    if ('repeat' in e && e.repeat) return;
 
     const now = performance.now();
     totalKeyCount++;
