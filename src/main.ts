@@ -26,39 +26,7 @@ let totalKeyCount = 0;
 */
 const fixed1 = (num: number) => num.toFixed(1);
 
-const updateDisplay = (currentBpm: number, avgBpm: number) => {
-    avgDisplay.textContent = fixed1(avgBpm);
-    bpmDisplay.textContent = fixed1(currentBpm);
-    peakDisplay.textContent = fixed1(maxBpm);
-}
-
-const reset = () => {
-    lastKeyTime = null;
-    maxBpm = 0;
-    recentIntervals = [];
-    startTime = null;
-    totalKeyCount = 0;
-    updateDisplay(0, 0);
-}
-
-/*
-** Events
-*/
-modeSelect.addEventListener('change', () => {
-    mode = Number(modeSelect.value);
-    reset();
-});
-
-resetBtn.addEventListener('click', reset);
-
-samplingSelect.addEventListener('change', () => {
-    numSamples = Number(samplingSelect.value);
-    if (recentIntervals.length > numSamples) {
-        recentIntervals = recentIntervals.slice(-numSamples);
-    }
-});
-
-window.addEventListener('keydown', (e) => {
+const handleInput = (e) => {
     if (e.repeat) return;
 
     const now = performance.now();
@@ -91,4 +59,48 @@ window.addEventListener('keydown', (e) => {
 
     updateDisplay(currentBpm, overallAvgBpm);
     lastKeyTime = now;
+}
+
+const reset = () => {
+    lastKeyTime = null;
+    maxBpm = 0;
+    recentIntervals = [];
+    startTime = null;
+    totalKeyCount = 0;
+    updateDisplay(0, 0);
+}
+
+const updateDisplay = (currentBpm: number, avgBpm: number) => {
+    avgDisplay.textContent = fixed1(avgBpm);
+    bpmDisplay.textContent = fixed1(currentBpm);
+    peakDisplay.textContent = fixed1(maxBpm);
+}
+
+/*
+** Events
+*/
+modeSelect.addEventListener('change', () => {
+    mode = Number(modeSelect.value);
+    reset();
+});
+
+resetBtn.addEventListener('click', reset);
+
+samplingSelect.addEventListener('change', () => {
+    numSamples = Number(samplingSelect.value);
+    if (recentIntervals.length > numSamples) {
+        recentIntervals = recentIntervals.slice(-numSamples);
+    }
+});
+
+window.addEventListener('keydown', (e) => handleInput(e));
+
+// tap event
+window.addEventListener('pointerdown', (e) => {
+    if ((e.target as HTMLElement).tagName === 'SELECT' || (e.target as HTMLElement).tagName === 'BUTTON') {
+        return;
+    }
+
+    // キーボード入力と同じ計測ロジックを実行する
+    handleInput(e);
 });
