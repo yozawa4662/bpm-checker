@@ -13,7 +13,8 @@ const samplingSelect = document.querySelector<HTMLSelectElement>('#sampling-sele
 /*
 ** Consts
 */
-const RESETSECONDS = 2;
+const RESET_SECONDS = 1.2;
+const INTERVAL = 100;
 
 /*
 ** States
@@ -112,3 +113,13 @@ window.addEventListener('pointerdown', (e) => {
     // キーボード入力と同じ計測ロジックを実行する
     handleInput(e);
 });
+
+// Timer
+setInterval(() => {
+    if (lastKeyTime !== null) {
+        const idleTime = performance.now() - lastKeyTime;
+        if (idleTime > RESET_SECONDS * 1000) {
+            reset();
+        }
+    }
+}, INTERVAL);
