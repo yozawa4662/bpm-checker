@@ -110,7 +110,6 @@ window.addEventListener('pointerdown', (e) => {
         return;
     }
 
-    // キーボード入力と同じ計測ロジックを実行する
     handleInput(e);
 });
 
