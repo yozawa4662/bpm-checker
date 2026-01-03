@@ -11,6 +11,11 @@ const resetBtn = document.querySelector<HTMLButtonElement>('#reset-btn')!;
 const samplingSelect = document.querySelector<HTMLSelectElement>('#sampling-select')!;
 
 /*
+** Consts
+*/
+const RESETSECONDS = 2;
+
+/*
 ** States
 */
 let lastKeyTime: number | null = null;
@@ -19,7 +24,7 @@ let maxBpm = 0;
 let numSamples = 16;
 let recentIntervals: number[] = [];
 let startTime: number | null = null;
-let totalKeyCount = 0;
+let totalDurationCount = 0;
 
 /*
 ** Functions
@@ -30,35 +35,38 @@ const handleInput = (e: KeyboardEvent | PointerEvent) => {
     if ('repeat' in e && e.repeat) return;
 
     const now = performance.now();
-    totalKeyCount++;
 
-    if (startTime === null) {
+    // First keydown
+    if (lastKeyTime === null) {
+        lastKeyTime = now;
         startTime = now;
+        totalDurationCount = 0;
+        return;
     }
 
-    // average bpm
+    totalDurationCount++;
+    const interval = now - lastKeyTime;
+    lastKeyTime = now;
+
+    // Moving average
+    recentIntervals.push(interval);
+    if (recentIntervals.length > numSamples) recentIntervals.shift();
+    const avgInterval = recentIntervals.reduce((a, b) => a + b) / recentIntervals.length;
+
+    // Current BPM
+    const currentBpm = (60 * 1000 / avgInterval) / mode;
+
+    // Average
     let overallAvgBpm = 0;
-    if (totalKeyCount > 1 && startTime !== null) {
+    if (startTime !== null) {
         const totalDurationMin = (now - startTime) / 60 / 1000;
-        overallAvgBpm = (totalKeyCount / totalDurationMin) / mode;
+        overallAvgBpm = (totalDurationCount / totalDurationMin) / mode;
     }
 
-    // current bpm
-    let currentBpm = 0;
-    if (lastKeyTime !== null) {
-        const interval = now - lastKeyTime;
-
-        recentIntervals.push(interval);
-        if (recentIntervals.length > numSamples) recentIntervals.shift();
-        const avgInterval = recentIntervals.reduce((a, b) => a + b) / recentIntervals.length;
-        currentBpm = (60 * 1000 / avgInterval) / mode;
-    }
-
-    // max bpm
+    // Max BPM
     if (currentBpm > maxBpm) maxBpm = currentBpm;
 
     updateDisplay(currentBpm, overallAvgBpm);
-    lastKeyTime = now;
 }
 
 const reset = () => {
@@ -66,7 +74,7 @@ const reset = () => {
     maxBpm = 0;
     recentIntervals = [];
     startTime = null;
-    totalKeyCount = 0;
+    totalDurationCount = 0;
     updateDisplay(0, 0);
 }
 
