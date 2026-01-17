@@ -10,6 +10,10 @@ const peakDisplay = document.querySelector<HTMLSpanElement>('#peak-display')!;
 const resetBtn = document.querySelector<HTMLButtonElement>('#reset-btn')!;
 const samplingSelect = document.querySelector<HTMLSelectElement>('#sampling-select')!;
 
+const debugInfo = document.querySelector<HTMLDivElement>('#debug-info')!;
+const debugButtonStates = document.querySelector<HTMLDivElement>('#debug-button-states')!;
+const debugGamepadStatus = document.querySelector<HTMLDivElement>('#debug-gamepad-status')!;
+
 /*
 ** Consts
 */
@@ -23,6 +27,7 @@ let lastKeyTime: number | null = null;
 let mode: number = 4;
 let maxBpm = 0;
 let numSamples = 16;
+const previousGamepadState: boolean[] = [];
 let recentIntervals: number[] = [];
 let startTime: number | null = null;
 let totalDurationCount = 0;
@@ -32,9 +37,7 @@ let totalDurationCount = 0;
 */
 const fixed1 = (num: number) => num.toFixed(1);
 
-const handleInput = (e: KeyboardEvent | PointerEvent) => {
-    if ('repeat' in e && e.repeat) return;
-
+const handleInput = () => {
     const now = performance.now();
 
     // First keydown
@@ -85,6 +88,43 @@ const updateDisplay = (currentBpm: number, avgBpm: number) => {
     peakDisplay.textContent = fixed1(maxBpm);
 }
 
+const updateGamepad = () => {
+    const gamepads = navigator.getGamepads();
+
+    gamepads[0]?.buttons.forEach((button, index) => {
+        const isPressed = button.pressed;
+
+        if (isPressed && !previousGamepadState[index]) {
+            handleInput();
+        }
+        previousGamepadState[index] = isPressed;
+    });
+
+    requestAnimationFrame(updateGamepad);
+};
+
+// eslint-disable-line no-unused-vars
+const updateGamepadDebug = () => {
+    const gamepads = navigator.getGamepads();
+    const gp = gamepads[0];
+
+    if (gp) {
+        debugGamepadStatus.textContent = `ID: ${gp.id}`;
+
+        const states = gp.buttons.map((btn, idx) => {
+            const color = btn.pressed ? 'yellow' : 'lime';
+            const value = btn.value.toFixed(2);
+            return `<div style="color: ${color}">Btn ${idx}: ${btn.pressed ? 'ON' : 'OFF'} (${value})</div>`;
+        }).join('');
+
+        debugButtonStates.innerHTML = states;
+    } else {
+        debugGamepadStatus.textContent = "No gamepad detected. Press any button.";
+    }
+
+    requestAnimationFrame(updateGamepadDebug);
+};
+
 /*
 ** Events
 */
@@ -102,15 +142,23 @@ samplingSelect.addEventListener('change', () => {
     }
 });
 
-window.addEventListener('keydown', (e) => handleInput(e));
+window.addEventListener('keydown', (e) => {
+    if (e.repeat) return;
+    handleInput();
+});
 
 // tap event
 window.addEventListener('pointerdown', (e) => {
-    if ((e.target as HTMLElement).tagName === 'SELECT' || (e.target as HTMLElement).tagName === 'BUTTON') {
-        return;
-    }
+    if ((e.target as HTMLElement).tagName === 'SELECT'
+        || (e.target as HTMLElement).tagName === 'BUTTON') return;
 
-    handleInput(e);
+    handleInput();
+});
+
+// Gamepad
+window.addEventListener("gamepadconnected", () => {
+    console.log("Gamepad connected!");
+    requestAnimationFrame(updateGamepad);
 });
 
 // Timer
@@ -122,3 +170,12 @@ setInterval(() => {
         }
     }
 }, INTERVAL);
+
+// Debug
+if (new URLSearchParams(window.location.search).get('debug')) {
+    debugInfo.style.display = 'block';
+    requestAnimationFrame(updateGamepadDebug);
+}
+
+// Start gamepad polling immediately
+requestAnimationFrame(updateGamepad);
